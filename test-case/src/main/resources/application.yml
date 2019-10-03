@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:hsqldb:mem:standalone-test
+    username: sa
+    password:
+    driver-class-name: org.hsqldb.jdbcDriver
+  jpa:
+    hibernate:
+      dialect: org.hibernate.dialect.HSQLDialect
+      show_sql: false
+      format_sql: false
+      hbm2ddl:
+        auto: create-drop

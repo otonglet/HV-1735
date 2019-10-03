@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+    <parent id="1" embedded_field="whatever"/>
+    <eager_child id="2" parent_id="1"/>
+    <lazy_child id="3" parent_id="1"/>
+</dataset>
