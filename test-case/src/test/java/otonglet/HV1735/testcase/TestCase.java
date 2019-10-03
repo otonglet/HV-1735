@@ -7,7 +7,9 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
 import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 
 import org.dbunit.DataSourceDatabaseTester;
 import org.dbunit.database.DatabaseConfig;
@@ -36,8 +38,6 @@ public class TestCase {
     private LazyChildDao lazyChildDao;
     @Autowired
     private ParentDao parentDao;
-    @Autowired
-    private Validator validator;
 
     @Before
     public void setUp() throws Exception {
@@ -60,6 +60,11 @@ public class TestCase {
 
         Parent parent = parentDao.get(1L); // retrieves parent entity proxy from Hibernate cache, which was loaded at the previous line.
 
+        ValidatorFactory validatorFactory = Validation.byDefaultProvider()
+                .configure()
+                .traversableResolver(new AlwaysYesTraversableResolver())
+                .buildValidatorFactory();
+        Validator validator = validatorFactory.getValidator();
         Set<ConstraintViolation<Parent>> violations = validator.validate(parent); // should return 4 violations.
 
         assertThat(violations.stream().map(ConstraintViolation::getPropertyPath).map(Object::toString).collect(Collectors.toList()))
