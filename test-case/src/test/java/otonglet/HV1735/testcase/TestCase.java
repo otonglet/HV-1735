@@ -16,6 +16,7 @@ import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.operation.DatabaseOperation;
+import org.hibernate.Hibernate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,13 +59,10 @@ public class TestCase {
     public void lazyLoadThenValidate() {
         LazyChild lazyChild = lazyChildDao.getLazyChildWithLazilyInitializedParent(3L);
 
-        Parent parent = parentDao.get(1L); // retrieves parent entity proxy from Hibernate cache, which was loaded at the previous line.
+        Parent parent = parentDao.get(1L); // Retrieve parent entity proxy from Hibernate cache, which was loaded at the previous line.
+        assertThat(Hibernate.isInitialized(parent)).isTrue(); // Is it really a proxy ? This shouldn't pass but it does though.
 
-        ValidatorFactory validatorFactory = Validation.byDefaultProvider()
-                .configure()
-                .traversableResolver(new AlwaysYesTraversableResolver())
-                .buildValidatorFactory();
-        Validator validator = validatorFactory.getValidator();
+        Validator validator = getValidator();
         Set<ConstraintViolation<Parent>> violations = validator.validate(parent); // should return 4 violations.
 
         assertThat(violations.stream().map(ConstraintViolation::getPropertyPath).map(Object::toString).collect(Collectors.toList()))
@@ -74,5 +72,13 @@ public class TestCase {
                         "eagerChildren[0].field",
                         "lazyChildren[0].field"
                 ));
+    }
+
+    private Validator getValidator() {
+        ValidatorFactory validatorFactory = Validation.byDefaultProvider()
+                .configure()
+                .traversableResolver(new AlwaysYesTraversableResolver())
+                .buildValidatorFactory();
+        return validatorFactory.getValidator();
     }
 }
